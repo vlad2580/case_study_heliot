@@ -47,6 +47,13 @@ Follow these steps to set up and run the project:
 `terraform init` /
 `terraform apply`
 
+### Main.tf creates:
+1. Google Bigquery Dataset
+2. Google Bigquery Table
+3. Cloud Function
+4. Output with a trigger url for this function
+5. Cloud Function IAM member
+6. Cloud Scheduler job
 
 Note: A credentials file has been created to verify the functionality of the function. Additional functionality will be added soon (see issues).
 
@@ -59,37 +66,7 @@ Note: A credentials file has been created to verify the functionality of the fun
 
 6. Create a `requirements.txt` file specifying the versions of the used libraries.
 
-7. Deploy the function using the Google Cloud CLI with the following command:
 
-```shell
-gcloud functions deploy git-function-heliot \
-    --source https://source.developers.google.com/projects/case-study-heliot/repos/github_vlad2580_case_study_heliot/moveable-aliases/main/paths/git_function/ \
-    --runtime python311 \
-    --trigger-http \
-    --project "case-study-heliot" \
-    --entry-point get_inputs_json
-````
-
-For redeploying the function after updates and subsequent commits, apply the following command:
-
-```shell
-gcloud functions deploy git-function-heliot \
-    --source https://source.developers.google.com/projects/case-study-heliot/repos/github_vlad2580_case_study_heliot/moveable-aliases/main/paths/git_function/ \
-    --project "case-study-heliot" \
-    --entry-point get_inputs_json
-````
-
-8.Create a scheduler job to schedule the function's execution at 8:30 AM every day (Using CLI).
-
-```shell
-gcloud scheduler jobs create http daily-job \
-    --schedule "30 8 * * *" \
-    --uri https://us-central1-case-study-heliot.cloudfunctions.net/git-function-heliot \
-    --http-method GET \
-    --time-zone "Europe/Prague" \
-    --location us-central1 \
-    --project case-study-heliot
-````
 
 ## Summary
 At this point, I'd like to express my gratitude and encourage collaboration on this project. Your contributions and ideas are highly valued. Let's work together to enhance and refine this project further.
