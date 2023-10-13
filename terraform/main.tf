@@ -3,8 +3,9 @@
 provider "google" {
   credentials = file("case-study-heliot-a13784a64ee1.json")
   project     = var.project_id
-  region      = "EU"
+  region      = "us-central1"
 }
+
 
 # This block defines a Google BigQuery dataset resource. It sets the dataset_id,
 # project, default table expiration time, and location for the dataset.
@@ -24,4 +25,51 @@ resource "google_bigquery_table" "example_table" {
   deletion_protection = false
 
   schema = var.table_schema
+}
+
+
+
+# Define a Google Cloud Function
+resource "google_cloudfunctions_function" "git_function_heliot" {
+  name    = "git-function-heliot"
+  runtime = "python311"
+  source_repository {
+    url = "https://source.developers.google.com/projects/case-study-heliot/repos/github_vlad2580_case_study_heliot/moveable-aliases/main/paths/git_function/"
+  }
+  entry_point  = "get_inputs_json"
+  project      = var.project_id
+  trigger_http = true
+
+  available_memory_mb = 256
+  timeout             = 60
+
+}
+
+resource "google_cloudfunctions2_function_iam_member" "allow_acces_tff" {
+  project        = var.project_id
+  role           = "roles/cloudfunctions.invoker"
+  cloud_function = google_cloudfunctions_function.git_function_heliot.name
+  member         = "allUsers"
+
+}
+
+# Output the URL of the Cloud Function
+output "git_function_heliot_url" {
+  value = google_cloudfunctions_function.git_function_heliot.https_trigger_url
+}
+
+
+
+
+resource "google_cloud_scheduler_job" "daily_job" {
+  name        = "daily_job_8_30"
+  description = "Daily scheduled job"
+  schedule    = "30 8 * * *"
+  time_zone   = "Europe/Prague"
+  project     = "case-study-heliot"
+
+  http_target {
+    uri         = google_cloudfunctions_function.git_function_heliot.https_trigger_url
+    http_method = "GET"
+  }
 }
